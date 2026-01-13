@@ -1,21 +1,5 @@
 ```
 # Dependencies
-node_modules/
-
-# Environment
-.env
-.env.local
-*.env.*
-
-# Editors
-.vscode/
-
-# Build artifacts
-dist/
-build/
-target/
-
-# Python
 __pycache__/
 *.pyc
 *.pyo
@@ -25,14 +9,37 @@ venv/
 .venv/
 .env
 .env.local
+.env.*
+
+# Database
+*.db
+*.db-journal
 
 # Logs
 *.log
 
-# OS generated files
+# Editor/IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*.tmp
+
+# OS
 .DS_Store
 Thumbs.db
 
-# Backup files
-*.bak
+# Coverage
+.coverage
+coverage/
+htmlcov/
+
+# Build/test artifacts
+.mypy_cache/
+.pytest_cache/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
 ```
