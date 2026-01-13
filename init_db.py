@@ -1,4 +1,4 @@
-from sqlalchemy import create_engine, Column, Integer, String, DateTime, Date, Time, ForeignKey, Enum
+from sqlalchemy import create_engine, Column, Integer, String, DateTime, Date, Time, ForeignKey, Enum, Boolean
 from sqlalchemy.orm import declarative_base
 from sqlalchemy.orm import sessionmaker, relationship
 from passlib.context import CryptContext
@@ -89,6 +89,7 @@ class User(Base):
     password_hash = Column(String, nullable=False)  # Хэш пароля
     role = Column(Enum(UserRole), nullable=False)  # Роль пользователя
     group_id = Column(Integer, ForeignKey("groups.id"), nullable=True)  # Идентификатор группы
+    is_headman = Column(Boolean, default=False)  # Признак старосты (только для студентов)
     
     # Связи
     group = relationship("Group", back_populates="students")
@@ -107,7 +108,7 @@ class TeacherGroup(Base):
     group = relationship("Group", back_populates="teachers")
 
 # Настройка базы данных
-DATABASE_URL = os.getenv("DATABASE_URL", "postgresql://postgres:1234@127.0.0.1:5432/attendance_db")
+DATABASE_URL = os.getenv("DATABASE_URL", "postgresql://postgres:1234@db:5432/attendance_db")
 engine = create_engine(DATABASE_URL)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 

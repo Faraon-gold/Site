@@ -12,7 +12,7 @@ from datetime import datetime, date, timedelta
 import enum
 import jwt
 from typing import Optional, List
-from pydantic import BaseModel
+from pydantic import BaseModel, field_validator
 import gspread
 from oauth2client.service_account import ServiceAccountCredentials
 from dateutil import parser
@@ -32,7 +32,7 @@ ALGORITHM = "HS256"
 
 # Конфигурация базы данных
 import os
-DATABASE_URL = os.getenv("DATABASE_URL", "postgresql://postgres:1234@127.0.0.1:5432/attendance_db")
+DATABASE_URL = os.getenv("DATABASE_URL", "postgresql://postgres:1234@db:5432/attendance_db")
 engine = create_engine(DATABASE_URL)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 Base = declarative_base()
@@ -61,6 +61,7 @@ class User(Base):
     password_hash = Column(String, nullable=False)  # Хэш пароля
     role = Column(Enum(UserRole), nullable=False)  # Роль пользователя
     group_id = Column(Integer, ForeignKey("groups.id"), nullable=True)  # Идентификатор группы
+    is_headman = Column(Boolean, default=False)  # Признак старосты (только для студентов)
     
     # Связи
     group = relationship("Group", back_populates="students")
@@ -141,6 +142,13 @@ class UserCreate(BaseModel):
     password: str
     role: UserRole
     group_id: Optional[int] = None
+    is_headman: bool = False
+
+    @field_validator('group_id')
+    def validate_group_id(cls, v):
+        if v is not None and v <= 0:
+            raise ValueError('ID группы должен быть положительным числом')
+        return v
 
 class UserUpdate(BaseModel):
     full_name: Optional[str] = None
@@ -148,6 +156,13 @@ class UserUpdate(BaseModel):
     password: Optional[str] = None
     role: Optional[UserRole] = None
     group_id: Optional[int] = None
+    is_headman: Optional[bool] = None
+
+    @field_validator('group_id', mode='before')
+    def validate_group_id(cls, v):
+        if v is not None and v <= 0:
+            raise ValueError('ID группы должен быть положительным числом')
+        return v
 
 class LoginRequest(BaseModel):
     login: str
@@ -368,7 +383,8 @@ async def create_user(user_data: UserCreate, current_user: User = Depends(get_cu
         login=user_data.login,
         password_hash=get_password_hash(user_data.password),
         role=user_data.role,
-        group_id=user_data.group_id
+        group_id=user_data.group_id,
+        is_headman=user_data.is_headman
     )
     
     db.add(new_user)
@@ -404,6 +420,8 @@ async def update_user(user_id: int, user_data: UserUpdate, current_user: User = 
         user.role = user_data.role
     if user_data.group_id is not None:
         user.group_id = user_data.group_id
+    if user_data.is_headman is not None:
+        user.is_headman = user_data.is_headman
     
     db.commit()
     return {"success": True, "message": "Пользователь успешно обновлён"}
@@ -422,7 +440,8 @@ async def get_user(user_id: int, current_user: User = Depends(get_current_user),
         "full_name": user.full_name,
         "login": user.login,
         "role": user.role.value,
-        "group_id": user.group_id
+        "group_id": user.group_id,
+        "is_headman": user.is_headman
     }
 
 @app.delete("/admin/users/{user_id}")
@@ -473,7 +492,7 @@ async def student_dashboard(request: Request, current_user: User = Depends(get_c
 # Маршруты для старост
 @app.get("/dashboard/monitor", response_class=HTMLResponse)
 async def monitor_dashboard(request: Request, current_user: User = Depends(get_current_user), db: Session = Depends(get_db)):
-    if not current_user or current_user.role != UserRole.monitor:
+    if not current_user or (current_user.role != UserRole.monitor and (current_user.role != UserRole.student or not current_user.is_headman)):
         raise HTTPException(status_code=403, detail="Доступ запрещён")
     
     # Получаем студентов своей группы
@@ -548,7 +567,7 @@ async def get_attendance(user_id: int, schedule_id: int, current_user: User = De
     if current_user.role == UserRole.student and current_user.id != user_id:
         raise HTTPException(status_code=403, detail="Доступ запрещён")
     
-    if current_user.role == UserRole.monitor:
+    if current_user.role == UserRole.monitor or (current_user.role == UserRole.student and current_user.is_headman):
         # Староста может видеть только студентов своей группы
         student = db.query(User).filter(User.id == user_id).first()
         if not student or student.group_id != current_user.group_id:
@@ -582,7 +601,7 @@ async def update_attendance(
     if not schedule_item:
         raise HTTPException(status_code=404, detail="Занятие не найдено")
     
-    if current_user.role == UserRole.monitor:
+    if current_user.role == UserRole.monitor or (current_user.role == UserRole.student and current_user.is_headman):
         # Староста может отмечать только студентов своей группы
         student = db.query(User).filter(User.id == user_id).first()
         if not student or student.group_id != current_user.group_id:
