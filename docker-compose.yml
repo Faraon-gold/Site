@@ -10,7 +10,7 @@ services:
     depends_on:
       - db
     environment:
-      - DATABASE_URL=postgresql://attendance_user:attendance_pass@db:5432/attendance_db
+      - DATABASE_URL=postgresql://postgres:1234@db:5432/attendance_db
     command: >
       sh -c "python init_db.py && uvicorn main:app --host 0.0.0.0 --port 8000 --reload"
 
@@ -18,8 +18,8 @@ services:
     image: postgres:15
     environment:
       POSTGRES_DB: attendance_db
-      POSTGRES_USER: attendance_user
-      POSTGRES_PASSWORD: attendance_pass
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: 1234
     ports:
       - "5432:5432"
     volumes:
