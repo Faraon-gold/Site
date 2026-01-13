@@ -1,39 +1,74 @@
-```
-# Dependencies
-__pycache__/
-*.pyc
-*.pyo
-*.pyd
-.venv/
-venv/
-env/
-.pytest_cache/
-.mypy_cache/
-.coverage
-coverage/
-htmlcov/
-
-# Build/dist
-dist/
-build/
-*.egg-info/
-
-# Logs
-*.log
-
+```bash
 # Environment
 .env
 .env.local
 *.env.*
 
+# Logs and temp files
+*.log
+*.tmp
+*.swp
+
 # Editors
 .vscode/
 .idea/
-*.swp
-*.swo
-*.tmp
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.py~
+.Python
+venv/
+.venv/
+.env
+.env.local
+.env.*
+requirements.txt.bak
+pip-log.txt
+pip-delete-this-directory.txt
+.tox/
+.coverage
+.coverage.*
+.cache
+nosetests.xml
+coverage.xml
+*.cover
+*.log
+.git/
+.mypy_cache/
+.pytest_cache/
+.hypothesis/
+
+# Docker
+.dockerenv
+Dockerfile*
+docker-compose*
 
 # OS
 .DS_Store
 Thumbs.db
+ehthumbs.db
+Icon?
+.directory
+.Trashes
+*.nib
+*~.nib
+.nib
+*~
+#*#
+.\#*
+*.swp
+*.swo
+*~
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+VolumeIcon.icns
+com.apple.timemachine.donotpresent
 ```
