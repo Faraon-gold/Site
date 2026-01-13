@@ -32,7 +32,7 @@ ALGORITHM = "HS256"
 
 # Конфигурация базы данных
 import os
-DATABASE_URL = os.getenv("DATABASE_URL", "postgresql://attendance_user:attendance_pass@localhost:5432/attendance_db")
+DATABASE_URL = os.getenv("DATABASE_URL", "postgresql://postgres:1234@127.0.0.1:5432/attendance_db")
 engine = create_engine(DATABASE_URL)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 Base = declarative_base()

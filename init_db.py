@@ -4,6 +4,7 @@ from sqlalchemy.orm import sessionmaker, relationship
 from passlib.context import CryptContext
 from datetime import date, time
 import enum
+import os
 
 # Определение перечислимого типа для ролей пользователей
 class UserRole(str, enum.Enum):
@@ -106,8 +107,8 @@ class TeacherGroup(Base):
     group = relationship("Group", back_populates="teachers")
 
 # Настройка базы данных
-DATABASE_URL = "sqlite:///./attendance.db"
-engine = create_engine(DATABASE_URL, connect_args={"check_same_thread": False})
+DATABASE_URL = os.getenv("DATABASE_URL", "postgresql://postgres:1234@127.0.0.1:5432/attendance_db")
+engine = create_engine(DATABASE_URL)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
 # Контекст для хэширования паролей
