@@ -169,7 +169,12 @@ def verify_password(plain_password, hashed_password):
     return pwd_context.verify(plain_password, hashed_password)
 
 def get_password_hash(password):
-    return pwd_context.hash(password)
+    # Усекаем пароль до 72 байтов, учитывая многобайтовые символы
+    password_bytes = password.encode('utf-8')
+    truncated_bytes = password_bytes[:72]
+    # Декодируем безопасно, избегая проблем с разрезанием многобайтовых символов
+    truncated_password = truncated_bytes.decode('utf-8', errors='ignore')
+    return pwd_context.hash(truncated_password)
 
 # Создание и получение токенов JWT
 def create_access_token(data: dict):
